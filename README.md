@@ -1,5 +1,5 @@
 # Convox Tool
-Due to the nature of the convox CLI, it can take a fair amount of time to query racks. This tool will create cache that will help you easily find applications in racks.
+Due to the nature of the convox CLI, it can take a fair amount of time to query racks. This tool will create a cache that will help you can easily itirate over to find applications.
 
 # Requirements
 - MacOS

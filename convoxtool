@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Convox Tool
+# Paul Oram - Jun 2019
+
+cachefile=".cache"
+
+sourceCache() {
+    if [ -f $cachefile ]; then
+        source $cachefile; else
+        echo "Please run 'convoxtool -u' to update the cache"
+        exit 1
+    fi
+}
+
+updateCache() {
+    for r in $(convox racks | awk '{print $1}' | grep -v NAME); do
+        COUNTER=1
+        for a in $(convox apps --rack=$r | grep -v APP |awk '{print $1}'); do 
+            echo $r"["$COUNTER"]="$a | cut -d '/' -f2 | tr -d "-"
+            let COUNTER=COUNTER+1
+        done
+    done
+}
+
+expandRack() {
+    eval echo "\${$1[@]}"
+}
+
+returnApp() {
+    sourceCache
+    for r in $(cat $cachefile | cut -d "[" -f1 | uniq); do
+        if [[ $(expandRack $r) =~ $1 ]]; then
+            echo "App found in $r"
+        fi
+    done
+}
+
+help() {
+    echo "Simple convox tool to cache rack information, and find applications.
+
+Usage:
+    convoxtool -h
+    convoxtool -u                         update cache
+    convoxtool -a [application...]        find application
+
+Examples:
+    convoxtool -a shoebox
+
+Further help:
+    convox            list all 'convox' commands"
+}
+
+case $1 in
+    -u) 
+        updateCache > $cachefile;;
+    -a) 
+        returnApp $2;;
+    -h)
+        help;;
+    *) 
+        help
+        exit 1
+esac

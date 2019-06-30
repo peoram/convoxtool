@@ -3,35 +3,50 @@
 # Convox Tool
 # Paul Oram - Jun 2019
 
-cachefile=".cache"
+cacheFile=".cache"
+racksVariable="racks"
 
 sourceCache() {
-    if [ -f $cachefile ]; then
-        source $cachefile; else
+    if [ -f $cacheFile ]; then
+        source $cacheFile; else
         echo "Please run 'convoxtool -u' to update the cache"
         exit 1
     fi
 }
 
-updateCache() {
+readRackArray() {
+    eval echo "\${$1[@]}"
+}
+
+readSingleArray() {
+    app=$(eval echo "\${$1}")
+}
+
+cacheRack() {
+    counter=1
     for r in $(convox racks | awk '{print $1}' | grep -v NAME); do
-        COUNTER=1
+        echo $racksVariable"["$counter"]="$r
+        let counter=counter+1
+    done
+}
+
+cacheApps() {
+    sourceCache
+    for r in $(readRackArray $racksVariable); do
+        counter=1
         for a in $(convox apps --rack=$r | grep -v APP |awk '{print $1}'); do 
-            echo $r"["$COUNTER"]="$a | cut -d '/' -f2 | tr -d "-"
-            let COUNTER=COUNTER+1
+            echo $r"["$counter"]="$a | cut -d '/' -f2 | tr -d "-"
+            let counter=counter+1
         done
     done
 }
 
-expandRack() {
-    eval echo "\${$1[@]}"
-}
-
 returnApp() {
     sourceCache
-    for r in $(cat $cachefile | cut -d "[" -f1 | uniq); do
-        if [[ $(expandRack $r) =~ $1 ]]; then
-            echo "App found in $r"
+    for r in $(cat $cacheFile | grep -v $racksVariable | cut -d "=" -f1); do
+        readSingleArray $r
+        if [[ $app =~ $1 ]]; then
+            echo "Match $app found in ${r:0:${#r}-3}"
         fi
     done
 }
@@ -53,7 +68,8 @@ Further help:
 
 case $1 in
     -u) 
-        updateCache > $cachefile;;
+        cacheRack > $cacheFile
+        cacheApps >> $cacheFile;;
     -a) 
         returnApp $2;;
     -h)

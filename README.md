@@ -14,7 +14,7 @@ Create the cache file
 `convoxtool -u`
 
 Search for an app
-`convox -a <appname>`
+`convoxtool -a <appname>`
 
 # TODO
 - Add functionality to perform rolling updates of all racks

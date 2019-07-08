@@ -30,9 +30,15 @@ cacheRack() {
     done
 }
 
-cacheApps() {
+returnRack() {
     sourceCache
     for r in $(readRackArray $racksVariable); do
+        echo $r
+    done
+}
+
+cacheApps() {
+    for r in $(returnRack); do
         counter=1
         for a in $(convox apps --rack=$r | grep -v APP |awk '{print $1}'); do 
             echo $r"["$counter"]="$a | cut -d '/' -f2 | tr -d "-"
@@ -72,6 +78,8 @@ case $1 in
         cacheApps >> $cacheFile;;
     -a) 
         returnApp $2;;
+    -r) 
+        returnRack;;
     -h)
         help;;
     *) 

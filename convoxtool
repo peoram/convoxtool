@@ -37,6 +37,28 @@ returnRack() {
     done
 }
 
+returnRackStatus() {
+    convox rack --rack=$1 | grep Status | awk '{print $2}'
+}
+
+updateRack() {
+    for r in $(returnRack); do
+        if [[ $(returnRackStatus $r) == running ]]; then
+            echo "Updating rack: $r"
+            convox rack update --rack=$r
+            sleep 15
+            while [ $(returnRackStatus) != running ]; do
+                echo "$r is still updating"
+                sleep 300
+            done
+            echo "Rack update for $r complete!"
+        else
+            echo "Rack $r is not in a state to be updated"
+            break
+        fi
+    done
+}
+
 cacheApps() {
     for r in $(returnRack); do
         counter=1
@@ -61,9 +83,11 @@ help() {
     echo "Simple convox tool to cache rack information, and find applications.
 
 Usage:
-    convoxtool -h
-    convoxtool -u                         update cache
     convoxtool -a [application...]        find application
+    convoxtool -c                         create/update cache
+    convoxtool -h                         help menu
+    convoxtool -r                         return a list of convox racks
+    convoxtool -u                         update all convox racks
 
 Examples:
     convoxtool -a shoebox
@@ -73,15 +97,17 @@ Further help:
 }
 
 case $1 in
-    -u) 
-        cacheRack > $cacheFile
-        cacheApps >> $cacheFile;;
     -a) 
         returnApp $2;;
-    -r) 
-        returnRack;;
+    -c) 
+        cacheRack > $cacheFile
+        cacheApps >> $cacheFile;;
     -h)
         help;;
+    -r) 
+        returnRack;;
+    -u)
+        updateRack;;
     *) 
         help
         exit 1

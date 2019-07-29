@@ -5,6 +5,7 @@
 
 cacheFile=".cache"
 racksVariable="racks"
+apps=$(cat $cacheFile | grep -v $racksVariable | cut -d "=" -f1)
 
 sourceCache() {
     if [ -f $cacheFile ]; then
@@ -68,9 +69,16 @@ cacheApps() {
     done
 }
 
-returnApp() {
+returnApps() {
     sourceCache
-    for r in $(cat $cacheFile | grep -v $racksVariable | cut -d "=" -f1); do
+    for r in $apps; do
+        readRackArray $r
+    done
+}
+
+matchApp() {
+    sourceCache
+    for r in $apps; do
         readSingleArray $r
         if [[ $app =~ $1 ]]; then
             echo "Match $app found in ${r:0:${#r}-3}"
@@ -82,8 +90,9 @@ help() {
     echo "Simple convox tool to cache rack information, and find applications.
 
 Usage:
-    convoxtool -a [application...]        find application
+    convoxtool -a                         return a list of all applications
     convoxtool -c                         create/update cache
+    convoxtool -f [application...]        find application
     convoxtool -h                         help menu
     convoxtool -r                         return a list of convox racks
     convoxtool -u                         update all convox racks
@@ -97,10 +106,12 @@ Further help:
 
 case $1 in
     -a) 
-        returnApp $2;;
+        returnApps;;
     -c) 
         cacheRack > $cacheFile
         cacheApps >> $cacheFile;;
+    -h)
+        matchApp $2;;
     -h)
         help;;
     -r) 

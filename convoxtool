@@ -47,14 +47,13 @@ updateRack() {
             echo "Updating rack: $r"
             convox rack update --rack=$r
             sleep 15
-            while [ $(returnRackStatus) != running ]; do
+            while [ $(returnRackStatus $r) != running ]; do
                 echo "$r is still updating"
                 sleep 300
             done
             echo "Rack update for $r complete!"
         else
             echo "Rack $r is not in a state to be updated"
-            break
         fi
     done
 }

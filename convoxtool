@@ -110,7 +110,7 @@ case $1 in
     -c) 
         cacheRack > $cacheFile
         cacheApps >> $cacheFile;;
-    -h)
+    -f)
         matchApp $2;;
     -h)
         help;;

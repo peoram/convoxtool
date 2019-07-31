@@ -3,7 +3,9 @@
 # Convox Tool
 # Paul Oram - Jun 2019
 
-cacheFile=".cache"
+script="$(readlink $0)"
+scriptPath="$(dirname $script)"
+cacheFile="${scriptPath}/.cache"
 racksVariable="racks"
 apps=$(cat $cacheFile | grep -v $racksVariable | cut -d "=" -f1)
 
